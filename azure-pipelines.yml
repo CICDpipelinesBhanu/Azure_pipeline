@@ -1,0 +1,53 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: stage1
+    jobs:
+      - job: job1
+        displayName: "Job 1"
+        steps:
+          - script: echo "This is job 1"
+
+  - stage: stage2
+    dependsOn: [stage1]
+    jobs:
+      - job: job2
+        displayName: "Job 2"
+        steps:
+          - task: Npm@1
+            inputs:
+              command: 'custom'
+              customCommand: 'install -g azure-streamanalytics-cicd'
+          - task: CmdLine@2
+            inputs:
+             script: |
+              echo Write your commands here
+              
+              echo Hello world
+              
+              sudo npm install -g azure-streamanalytics-cicd --unsafe-perm=true --allow-root
+          
+            
+  - stage: stage3
+    dependsOn: [stage2]
+    jobs:
+      - job: job3
+        displayName: "Job 3"
+        steps:
+          - task: CmdLine@2
+            inputs:
+              script: 'azure-streamanalytics-cicd build --v2 -project $(projectRootPath)/asaproj.json -outputpath $(projectRootPath)/$(outputPath)/$(deployPath)'
+
+          
+            
+  - stage: stage4
+    dependsOn: [stage2, stage3]
+    jobs:
+      - job: job4
+        displayName: "Job 4"
+        steps:
+          - script: echo "This is job 4"
